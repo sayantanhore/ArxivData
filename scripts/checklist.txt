@@ -1,0 +1,8 @@
+# This file contains the checklist of things to be done on latex abstracts
+
+1. Check whether the document is in English.
+2. Remove markups and put them in an XML file.
+3. Remove all mathematical blocks - $ $, $$ $$, \begin{equation} \end{equation}, \begin{equation*} \end{equation*} etc.
+4. Remove citations.
+5. Remove enumerations.
+6. After a clear text is retrieved, pass the text through 'python enchant' to check for spelling mistakes, if any, check if two words are joined with a space missing in between them. Do not count keywords or special words formed with uppercase initial or a hyphen in between.
