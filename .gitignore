@@ -1,0 +1,5 @@
+# This is the .gitignore file for ArxivData
+
+*.pyc
+
+
