@@ -1,11 +1,22 @@
 import re
 import sys, os
+import time
 import xml.etree.ElementTree as et
 import isEnglish
 from localsettings import *
 import cprints as cp
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------
+#Declarations
+root = None
+doc_group = {'eng': [], 'non-eng': []}
+
+# Separates English and Non-English documents
+def group_document(doc_serial_no, english):
+	if english:
+		doc_group['eng'].append(doc_serial_no)
+	else:
+		doc_group['non-eng'].append(doc_serial_no)
 
 # Converts Equation markup to shorthand ($)
 def change_eqn_markup_to_shorthand(s):
@@ -81,19 +92,30 @@ def process_data(s):
 def read_data(filename):
 	cp.head("Processing, please wait ...")
 	tree = et.parse(DATA_PATH + filename)
+	global root
 	root = tree.getroot()
 	os.system('clear')
+	cp.head("Text extraction done ...")
+	time.sleep(2)
+	os.system('clear')
 	for article in root.iter('article'):
-		for id in article.iter('id'):
-			if int(id.text) <= 5:
-				cp.head("Document " + str(id.text) + " starts", True)
-				text = article.find('abstract').text
-				text = process_data(text)
-				is_english = isEnglish.is_english(text)
-				cp.cprint("Is the text in English?", is_english, True)
-				isEnglish.correct_spelling(text)
-				cp.head("Document " + str(id.text) + " ends", True)
-				
+		id = article.find('id').text
+		if int(id) <= 1:
+			cp.head("Document " + str(id) + " starts", True)
+			text = article.find('abstract').text
+			text = process_data(text)
+			is_english = isEnglish.is_english(text)
+			cp.cprint("Is the text in English?", is_english, True)
+			group_document(id, is_english)
+			#isEnglish.correct_spelling(text)
+			cp.head("Document " + str(id) + " ends", True)
+	
+	cp.cprint("How many", "", True)
+	cp.cprint("English", len(doc_group['eng']))
+	cp.cprint("Non-English", len(doc_group['non-eng']))
+	articles = root.iter('article')
+	print(articles[2].find('abstract').text)
+	#cp.cprint("The third text", root.find('article')[2].find('abstract').text)
 				
 
 if __name__ == '__main__':
