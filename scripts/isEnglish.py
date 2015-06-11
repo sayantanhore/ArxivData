@@ -14,7 +14,7 @@ def correct_spelling(text):
 
 def is_english(text, UK = False):
 	if UK:
-		checker = enchant.DICT("en_UK")
+		checker = enchant.Dict("en_UK")
 	else:
 		checker = enchant.Dict("en_US")
 

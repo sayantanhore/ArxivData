@@ -4,6 +4,8 @@ import xml.etree.ElementTree as et
 import isEnglish
 import cprints as cp
 import os, time
+import json
+from localsettings import DATA_PATH
 
 # Separates English and Non-English documents
 def group_docs(root, doc_group):
@@ -12,17 +14,19 @@ def group_docs(root, doc_group):
 	os.system('clear')
 	for article in root.iter('article'):
 		id = int(article.find('id').text)
-		if id <= 10:
-			cp.head("Checking document " + str(id))
-			english = isEnglish.is_english(article.find('abstract').text)
-			if english:
-				doc_group['eng'].append(id)
-			else:
-				doc_group['non-eng'].append(id)
-			os.system('clear')
+		#if id <= 10:
+		cp.head("Checking document " + str(id))
+		english = isEnglish.is_english(article.find('abstract').text)
+		if english:
+			doc_group['eng'].append(id)
+		else:
+			doc_group['non-eng'].append(id)
+		os.system('clear')
 	cp.head("Classification completed")
 	cp.cprint("How many", "", True)
 	cp.cprint("English", len(doc_group['eng']))
 	cp.cprint("Non-English", len(doc_group['non-eng']))
+	with open(DATA_PATH + "doc_grouped.txt", "wb") as outfile:
+		json.dump(doc_group, outfile)
 	time.sleep(1)
 	os.system('clear')
