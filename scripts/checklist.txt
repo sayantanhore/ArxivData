@@ -6,3 +6,10 @@
 4. Remove citations.
 5. Remove enumerations.
 6. After a clear text is retrieved, pass the text through 'python enchant' to check for spelling mistakes, if any, check if two words are joined with a space missing in between them. Do not count keywords or special words formed with uppercase initial or a hyphen in between.
+
+# Markups to remove
+# -----------------
+
+Search for patterns like '\begin{<command>}[<options>]<whatever>\end{<command>}'. The <command> shoud match bothways marking the closing of a tag opened before. Remove anything before <whatever> and after it that matches the given patterns. Now check the text <whatever> for other latex constructs like '\item' etc. and remove them. Once pure text remains, run it through the spellchecker.
+
+There are commands for which the '\end{<command>}' does not exist. Have a list prepared for them and match the <command> part with it. If so then do not look for the '\end{<command>}' part, just remove the '\begin{<command>}[<options>]'section.
