@@ -23,7 +23,7 @@ def flush_stdout():
 	sys.stdout.flush()
 
 # Prints heading text
-def head(text, major = False):
+def head(text, major = False, delay = 1):
 	for i in range(int(columns)):
 		if (major):
 			#sys.stdout.write(bcolors.HEADER + "*" + bcolors.ENDC)
