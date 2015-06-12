@@ -45,21 +45,22 @@ def remove_citations(id, s):
 	count_words(s)
 	return s
 
-# Remove itemize
-def remove_begin_markups(s):
-	#pattern = r'\\begin\{[^{}]*\}'
-	pattern = r'\\\w+(?:(\[\w+\])|({\w+}))*(?:\s)+(?:(\\\w+)(?:\s)+\w+(?:\s)+)+\\\w+({\w+})'
-	s = re.sub(pattern, "", s, count = 0, flags = 0)
-	cp.cprint("After removing citations", s, True)
-	return s
 
 # Removes equations
-def remove_math_expr(id, s):
+def remove_math_expr(id, s, single = False):
 	global doc_group
+	if not single:
+		cp.cprint("Checking for $$ MATH $$ expressions", "", True)
+	else:
+		cp.cprint("Checking for $ MATH $ expressions", "", True)
 	cp.cprint("Text before removing math expressions", s, True)
 	cp.cprint("Word count before removal", "", True)
 	count_words(s)
-	pattern = r'\$[^$]*\$'
+	#pattern = r'\$[^$]*\$'
+	if single == True:
+		pattern = r'\$.*?\$'
+	else:
+		pattern = r'\$\$.*?\$\$'
 	res = re.findall(pattern, s)
 	cp.cprint("Patterns present", res, True)
 	print("\n")
@@ -73,8 +74,6 @@ def remove_math_expr(id, s):
 	cp.cprint("Text after removing math expressions", s, True)
 	cp.cprint("Word count after removal", "", True)
 	count_words(s)
-	with open(DATA_PATH + "doc_grouped_math.txt", "wb") as outfile:
-		json.dump(doc_group, outfile)
 	return s
 
 # Removes 'begin' constructs
@@ -83,7 +82,8 @@ def remove_begin_end_markups(id, s):
 	cp.cprint("Text before removing begin-end constructs", s, True)
 	cp.cprint("Word count before removal", "", True)
 	count_words(s)
-	pattern = r'\\begin\s*(?:(?:{(\w+)})|(?:\[\w+\]))*\s*(?:\\item\s+[\w -,:;".]+\s+)+\\end\s*{\1}'
+	pattern = r'\\begin\s*(?:(?:{(\w+)})|(?:\[\w+\]))*\s*(?:\\item\s+[\w -,:;\'".]+\s+)+\\end\s*{\1}'
+	#pattern = r''
 	res = re.findall(pattern, s)
 	cp.cprint("Patterns present", res, True)
 	print("\n")
@@ -96,9 +96,6 @@ def remove_begin_end_markups(id, s):
 	cp.cprint("Text after removing begin-end constructs", s, True)
 	cp.cprint("Word count after removal", "", True)
 	count_words(s)
-	with open(DATA_PATH + "doc_grouped_begin_end.txt", "wb") as outfile:
-		json.dump(doc_group, outfile)
-	return s
 
 # Removes hyphens from the beginning of words
 def remove_hyphen_from_start(s):
@@ -133,7 +130,11 @@ def process_data(id, s):
 	s = change_eqn_markup_to_shorthand(s)
 	s = remove_math_expr(id, s)
 	s = remove_begin_end_markups(id, s)
-	return s
+	# Write to file
+	if (id % 1000) == 0 or id == 78129:
+		with open(DATA_PATH + "doc_grouped_latex.txt", "wb") as outfile:
+			json.dump(doc_group, outfile)
+		return s
 
 # Reads the XML data file
 def read_data(filename):
@@ -151,7 +152,6 @@ def read_data(filename):
 	if os.path.exists(DATA_PATH + "doc_grouped.txt"):
 		doc_group = json.load(open(DATA_PATH + "doc_grouped.txt", "rb"))
 	else:
-		print(False)
 		gd.group_docs(root, doc_group)
 	
 	# Process English documents
@@ -160,9 +160,9 @@ def read_data(filename):
 	time.sleep(2)
 	os.system('clear')
 	for id in doc_group['eng']:
-		if id < 78129:
+		if id < len(documents):
 			cp.head("Document " + str(id) + " starts", True)
-			text = documents[id].find('abstract').text
+			text = documents[id - 1].find('abstract').text
 			text = process_data(id, text)
 			cp.head("Document " + str(id) + " ends", True)
 	check_for = 'begin-end'
