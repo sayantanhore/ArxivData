@@ -75,7 +75,29 @@ def remove_math_expr(id, s):
 	count_words(s)
 	with open(DATA_PATH + "doc_grouped_math.txt", "wb") as outfile:
 		json.dump(doc_group, outfile)
-	
+	return s
+
+# Removes 'begin' constructs
+def remove_begin_end_markups(id, s):
+	global doc_group
+	cp.cprint("Text before removing begin-end constructs", s, True)
+	cp.cprint("Word count before removal", "", True)
+	count_words(s)
+	pattern = r'\\begin\s*(?:(?:{(\w+)})|(?:\[\w+\]))*\s*(?:\\item\s+[\w -,:;".]+\s+)+\\end\s*{\1}'
+	res = re.findall(pattern, s)
+	cp.cprint("Patterns present", res, True)
+	print("\n")
+	if len(res) > 0:
+		if 'begin-end' not in doc_group.keys():
+			doc_group['begin-end'] = [id]
+		else:
+			doc_group['begin-end'].append(id)
+	s = re.sub(pattern, "", s, count = 0, flags = 0)
+	cp.cprint("Text after removing begin-end constructs", s, True)
+	cp.cprint("Word count after removal", "", True)
+	count_words(s)
+	with open(DATA_PATH + "doc_grouped_begin_end.txt", "wb") as outfile:
+		json.dump(doc_group, outfile)
 	return s
 
 # Removes hyphens from the beginning of words
@@ -110,11 +132,7 @@ def process_data(id, s):
 	#s = remove_citations(id, s)
 	s = change_eqn_markup_to_shorthand(s)
 	s = remove_math_expr(id, s)
-	#text = "\cite{sds}dsdsad\cite{wewew33}sadsad sa sadsa dsa sa \cite{blah_blah} 5454875837584huhdbhfdsfy7 \cite{huahua}\cite{s}  uyegrewrewyrew	\cite{1222}	huhfuewuhf\cite{dsds}"
-	#print(text)
-	
-	
-	#count_words(s)
+	s = remove_begin_end_markups(id, s)
 	return s
 
 # Reads the XML data file
@@ -134,7 +152,7 @@ def read_data(filename):
 		doc_group = json.load(open(DATA_PATH + "doc_grouped.txt", "rb"))
 	else:
 		print(False)
-		#gd.group_docs(root, doc_group)
+		gd.group_docs(root, doc_group)
 	
 	# Process English documents
 	documents = root.findall('article')
@@ -142,14 +160,14 @@ def read_data(filename):
 	time.sleep(2)
 	os.system('clear')
 	for id in doc_group['eng']:
-		if id <= 200:
+		if id < 78129:
 			cp.head("Document " + str(id) + " starts", True)
 			text = documents[id].find('abstract').text
 			text = process_data(id, text)
 			cp.head("Document " + str(id) + " ends", True)
-	check_for = 'math'
+	check_for = 'begin-end'
 	if check_for in doc_group.keys():
-		cp.cprint("Documents with math expressions", doc_group[check_for])
+		cp.cprint("Documents with begin-end expressions", doc_group[check_for])
 	'''
 	for article in root.iter('article'):
 		id = article.find('id').text
