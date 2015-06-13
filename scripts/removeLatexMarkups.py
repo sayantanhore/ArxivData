@@ -76,8 +76,52 @@ def remove_math_expr(id, s, single = False):
 	count_words(s)
 	return s
 
+# Removes 'begin' markups
+def remove_begin_markups(id, s):
+	global doc_group
+	cp.cprint("Text before removing begin constructs", s, True)
+	cp.cprint("Word count before removal", "", True)
+	count_words(s)
+	pattern = r'\\begin\s*(?:(?:{\w+}\s*)|(?:\[\w+\]\s*))*'
+	res = re.findall(pattern, s)
+	cp.cprint("Patterns present", res, True)
+	print("\n")
+	if len(res) > 0:
+		if 'begin-end' not in doc_group.keys():
+			doc_group['begin-end'] = [id]
+		else:
+			doc_group['begin-end'].append(id)
+	s = re.sub(pattern, "", s, count = 0, flags = 0)
+	cp.cprint("Text after removing begin constructs", s, True)
+	cp.cprint("Word count after removal", "", True)
+	count_words(s)
+	return s
+
+# Removes 'end' markups
+def remove_end_markups(id, s):
+	global doc_group
+	cp.cprint("Text before removing end constructs", s, True)
+	cp.cprint("Word count before removal", "", True)
+	count_words(s)
+	pattern = r'\\end\s+{\w+}'
+	res = re.findall(pattern, s)
+	cp.cprint("Patterns present", res, True)
+	print("\n")
+	if len(res) > 0:
+		if 'begin-end' not in doc_group.keys():
+			doc_group['begin-end'] = [id]
+		elif id not in doc_group['begin-end']:
+				doc_group['begin-end'].append(id)
+	s = re.sub(pattern, "", s, count = 0, flags = 0)
+	cp.cprint("Text after removing end constructs", s, True)
+	cp.cprint("Word count after removal", "", True)
+	count_words(s)
+	return s
+
+
 # Removes 'begin' constructs
 def remove_begin_end_markups(id, s):
+	'''
 	global doc_group
 	cp.cprint("Text before removing begin-end constructs", s, True)
 	cp.cprint("Word count before removal", "", True)
@@ -96,6 +140,10 @@ def remove_begin_end_markups(id, s):
 	cp.cprint("Text after removing begin-end constructs", s, True)
 	cp.cprint("Word count after removal", "", True)
 	count_words(s)
+	'''
+	s = remove_begin_markups(id, s)
+	s = remove_end_markups(id, s)
+	return s
 
 # Removes hyphens from the beginning of words
 def remove_hyphen_from_start(s):
@@ -126,7 +174,7 @@ def read_text(filename):
 
 # Processes the extracted data
 def process_data(id, s):
-	#s = remove_citations(id, s)
+	s = remove_citations(id, s)
 	s = change_eqn_markup_to_shorthand(s)
 	s = remove_math_expr(id, s)
 	s = remove_begin_end_markups(id, s)
