@@ -54,7 +54,10 @@ def head(text, major = False, delay = 1):
 # Custom prints
 def cprint(text, s = "", linebreak = False):
 	#sys.stdout.write(bcolors.OKBLUE + text + " :: " + bcolors.ENDC)
-	ccprint(text + " :: ", bcolors.OKBLUE)
+	if text == "Error":
+		ccprint(text + " :: ", bcolors.FAIL)
+	else:
+		ccprint(text + " :: ", bcolors.OKBLUE)
 	flush_stdout()
 	if (linebreak):
 		print("")
