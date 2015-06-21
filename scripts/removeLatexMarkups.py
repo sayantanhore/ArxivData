@@ -1,3 +1,10 @@
+# This file holds the scripts for - classifying abstracts into English and non-English groups, removing citations, math
+# expressions, all begin-end constructs and grouping documents into a dictionary based on whether the previous constructs are
+# present or not.
+
+# Author: Sayantan Hore
+
+
 import re
 import sys, os
 import time
@@ -11,12 +18,12 @@ import json
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 #Declarations
 root = None
-doc_group = {'eng': [], 'non-eng': []}
+doc_group = {}
 doc_id_text = {}
 counter = 0
 
-file_doc_group = "doc_group_2"
-file_doc_id_text = "doc_id_text_2"
+file_doc_group = "doc_group_3"
+file_doc_id_text = "doc_id_text_3"
 
 # Converts Equation markup to shorthand ($)
 def change_eqn_markup_to_shorthand(s):
@@ -30,7 +37,6 @@ def change_eqn_markup_to_shorthand(s):
 
 # Remove citations
 def remove_citations(idn, s):
-	global doc_group
 	cp.cprint("Text before removing citations", s, True)
 	cp.cprint("Word count before removal", "", True)
 	count_words(s)
@@ -39,10 +45,9 @@ def remove_citations(idn, s):
 	cp.cprint("Patterns present", res, True)
 	print("\n")
 	if len(res) > 0:
-		if 'cite' not in doc_group.keys():
-			doc_group['cite'] = [idn]
-		else:
-			doc_group['cite'].append(idn)
+		update_dict('cite', idn)
+	else:
+		update_dict('no-cite', idn)
 	s = re.sub(pattern, "", s, count = 0, flags = 0)
 	cp.cprint("Text after removing citations", s, True)
 	cp.cprint("Word count after removal", "", True)
@@ -52,7 +57,6 @@ def remove_citations(idn, s):
 
 # Removes equations
 def remove_math_expr(idn, s, single = False):
-	global doc_group
 	if not single:
 		cp.cprint("Checking for $$ MATH $$ expressions", "", True)
 	else:
@@ -69,10 +73,9 @@ def remove_math_expr(idn, s, single = False):
 	cp.cprint("Patterns present", res, True)
 	print("\n")
 	if len(res) > 0:
-		if 'math' not in doc_group.keys():
-			doc_group['math'] = [idn]
-		elif idn not in doc_group['math']:
-			doc_group['math'].append(idn)
+		update_dict('math', idn)
+	else:
+		update_dict('no-math', idn)
 	s = re.sub(pattern, "", s, count = 0, flags = 0)
 	s = remove_hyphen_from_start(s)
 	cp.cprint("Text after removing math expressions", s, True)
@@ -82,7 +85,7 @@ def remove_math_expr(idn, s, single = False):
 
 # Removes 'begin' markups
 def remove_begin_markups(idn, s):
-	global doc_group
+	NO_BEGIN = False
 	cp.cprint("Text before removing begin constructs", s, True)
 	cp.cprint("Word count before removal", "", True)
 	count_words(s)
@@ -91,19 +94,18 @@ def remove_begin_markups(idn, s):
 	cp.cprint("Patterns present", res, True)
 	print("\n")
 	if len(res) > 0:
-		if 'begin-end' not in doc_group.keys():
-			doc_group['begin-end'] = [idn]
-		else:
-			doc_group['begin-end'].append(idn)
+		update_dict('begin-end', idn)
+	else:
+		NO_BEGIN = True
 	s = re.sub(pattern, "", s, count = 0, flags = 0)
 	cp.cprint("Text after removing begin constructs", s, True)
 	cp.cprint("Word count after removal", "", True)
 	count_words(s)
-	return s
+	return s, NO_BEGIN
 
 # Removes 'end' markups
 def remove_end_markups(idn, s):
-	global doc_group
+	NO_END = False
 	cp.cprint("Text before removing end constructs", s, True)
 	cp.cprint("Word count before removal", "", True)
 	count_words(s)
@@ -112,21 +114,24 @@ def remove_end_markups(idn, s):
 	cp.cprint("Patterns present", res, True)
 	print("\n")
 	if len(res) > 0:
-		if 'begin-end' not in doc_group.keys():
-			doc_group['begin-end'] = [idn]
-		elif idn not in doc_group['begin-end']:
-			doc_group['begin-end'].append(idn)
+		update_dict('begin-end', idn)
+	else:
+		NO_END = True
 	s = re.sub(pattern, "", s, count = 0, flags = 0)
 	cp.cprint("Text after removing end constructs", s, True)
 	cp.cprint("Word count after removal", "", True)
 	count_words(s)
-	return s
+	return s, NO_END
 
 
 # Removes 'begin' constructs
 def remove_begin_end_markups(idn, s):
-	s = remove_begin_markups(idn, s)
-	s = remove_end_markups(idn, s)
+	NO_BEGIN = False
+	NO_END = False
+	s, NO_BEGIN = remove_begin_markups(idn, s)
+	s, NO_END = remove_end_markups(idn, s)
+	if (NO_BEGIN == True) and (NO_END == True):
+		update_dict('no-begin-end', idn)
 	return s
 
 # Removes hyphens from the beginning of words
@@ -148,14 +153,34 @@ def count_words(s):
 
 # Classifies documents into language groups
 def classify_docs(idn, s):
-	global doc_group
 	english = isEnglish.is_english(s)
 	if english:
 		cp.cprint("Language", "English")
-		doc_group['eng'].append(idn)
+		update_dict('eng', idn)
 	else:
 		cp.cprint("Language", "Non-English")
-		doc_group['non-eng'].append(idn)
+		update_dict('non-eng', idn)
+
+# Update dictionary
+def update_dict(key, idn):
+	global doc_group
+	if key not in doc_group.keys():
+		doc_group[key] = [idn]
+	else:
+		if key == 'begin-end':
+			if idn not in doc_group[key]:
+				doc_group[key].append(idn)
+		else:
+			doc_group[key].append(idn)
+
+# Writes data to file
+def write_to_file():
+	global doc_group
+	global doc_id_text
+	with open(DATA_PATH + file_doc_group, "wb") as outfile:
+		json.dump(doc_group, outfile)
+	with open(DATA_PATH + file_doc_id_text, "wb") as outfile:
+		json.dump(doc_id_text, outfile)
 
 # Processes the extracted data
 def process_data(idn, s):
@@ -167,7 +192,6 @@ def process_data(idn, s):
 	s = remove_math_expr(idn, s, single = True)
 	s = remove_begin_end_markups(idn, s)
 	return s
-
 
 # Reads the XML data file
 def read_data(filename):
@@ -189,12 +213,10 @@ def read_data(filename):
 			ns_map.pop()
 			# Write to file
 			if (counter % 1000) == 0:
-				with open(DATA_PATH + file_doc_group, "wb") as outfile:
-					json.dump(doc_group, outfile)
-				with open(DATA_PATH + file_doc_id_text, "wb") as outfile:
-					json.dump(doc_id_text, outfile)
-			#if counter == 10:
-				#break
+				update_dict('total_docs', counter)
+				write_to_file()
+			if counter == 10:
+				break
 		elif event == 'start':
 			tag = None
 			if '' in dict(ns_map).keys():
@@ -208,19 +230,13 @@ def read_data(filename):
 				if text is not None:
 					cp.cprint("Original text", type(text), True)
 					text = process_data(idn, text)
-					doc_id_text[idn] = text
+					doc_id_text[idn] = dict({'serial': counter, 'text': text})
+					update_dict('text', idn)
 				else:
-					if 'no-text' not in doc_group.keys():
-						doc_group['no-text'] = [idn]
-					else:
-						doc_group['no-text'].append(idn)
+					update_dict('no-text', idn)
 					cp.cprint("Error", "No text found")
-
-	with open(DATA_PATH + file_doc_group, "wb") as outfile:
-		json.dump(doc_group, outfile)
-
-	with open(DATA_PATH + file_doc_id_text, "wb") as outfile:
-		json.dump(doc_id_text, outfile)
+	update_dict('total_docs', counter)
+	write_to_file()
 if __name__ == '__main__':
 	os.system('clear')
 	read_data(sys.argv[1])

@@ -11,7 +11,10 @@ def correct_spelling(text):
 		if not word[0].isupper() and not checker.check(word):
 			cp.cprint("Word", word)
 			cp.cprint("Suggestions", checker.suggest(word))
-
+def is_word(word):
+	checker = enchant.Dict("en_US")
+	return checker.check(word)
+	
 def is_english(text, UK = False):
 	if UK:
 		checker = enchant.Dict("en_UK")
