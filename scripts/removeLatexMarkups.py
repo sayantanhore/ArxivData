@@ -57,6 +57,7 @@ def remove_citations(idn, s):
 
 # Removes equations
 def remove_math_expr(idn, s, single = False):
+	NO_MATH = False
 	if not single:
 		cp.cprint("Checking for $$ MATH $$ expressions", "", True)
 	else:
@@ -73,15 +74,15 @@ def remove_math_expr(idn, s, single = False):
 	cp.cprint("Patterns present", res, True)
 	print("\n")
 	if len(res) > 0:
-		update_dict('math', idn)
+		NO_MATH = False
 	else:
-		update_dict('no-math', idn)
+		NO_MATH = True
 	s = re.sub(pattern, "", s, count = 0, flags = 0)
 	s = remove_hyphen_from_start(s)
 	cp.cprint("Text after removing math expressions", s, True)
 	cp.cprint("Word count after removal", "", True)
 	count_words(s)
-	return s
+	return s, NO_MATH
 
 # Removes 'begin' markups
 def remove_begin_markups(idn, s):
@@ -94,7 +95,7 @@ def remove_begin_markups(idn, s):
 	cp.cprint("Patterns present", res, True)
 	print("\n")
 	if len(res) > 0:
-		update_dict('begin-end', idn)
+		NO_BEGIN = False
 	else:
 		NO_BEGIN = True
 	s = re.sub(pattern, "", s, count = 0, flags = 0)
@@ -114,7 +115,7 @@ def remove_end_markups(idn, s):
 	cp.cprint("Patterns present", res, True)
 	print("\n")
 	if len(res) > 0:
-		update_dict('begin-end', idn)
+		NO_END = False
 	else:
 		NO_END = True
 	s = re.sub(pattern, "", s, count = 0, flags = 0)
@@ -132,6 +133,21 @@ def remove_begin_end_markups(idn, s):
 	s, NO_END = remove_end_markups(idn, s)
 	if (NO_BEGIN == True) and (NO_END == True):
 		update_dict('no-begin-end', idn)
+	else:
+		update_dict('begin-end', idn)
+	return s
+# Removes 'math' expressions, both $ and $$
+def remove_math_expressions(idn, s):
+	NO_MATH_SINGLE = False
+	NO_MATH_DOUBLE = False
+	# First pass
+	s, NO_MATH_DOUBLE = remove_math_expr(idn, s, single = False)
+	# Second pass
+	s, NO_MATH_SINGLE = remove_math_expr(idn, s, single = True)
+	if (NO_MATH_SINGLE is True) and (NO_MATH_DOUBLE is True):
+		update_dict('no-math', idn)
+	else:
+		update_dict('math', idn)
 	return s
 
 # Removes hyphens from the beginning of words
@@ -187,9 +203,6 @@ def process_data(idn, s):
 	classify_docs(idn, s)
 	s = remove_citations(idn, s)
 	s = change_eqn_markup_to_shorthand(s)
-	s = remove_math_expr(idn, s, single = False)
-	# Second pass
-	s = remove_math_expr(idn, s, single = True)
 	s = remove_begin_end_markups(idn, s)
 	return s
 
