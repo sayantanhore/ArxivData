@@ -29,13 +29,15 @@ def is_english(text, UK = False):
 		word_count += 1
 		if checker.check(word):
 			english_count += 1
-
-	if float(english_count) / word_count > 0.5:
-		return True
-	else:
-		if UK:
-			return False
+	if word_count > 0:
+		if (float(english_count) / word_count) > 0.5:
+			return True
 		else:
-			return is_english(text, UK = True)
+			if UK:
+				return False
+			else:
+				return is_english(text, UK = True)
+	else:
+		return False
 
 #NOTE: checker.suggest("Helo") >>> ['He lo', 'Hello'...] spellchecker

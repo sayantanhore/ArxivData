@@ -167,7 +167,7 @@ def update_dict(key, idn):
 	if key not in doc_group.keys():
 		doc_group[key] = [idn]
 	else:
-		if key == 'begin-end':
+		if (key == 'begin-end') or (key == 'math') or (key == 'no-math'):
 			if idn not in doc_group[key]:
 				doc_group[key].append(idn)
 		else:
@@ -215,7 +215,7 @@ def read_data(filename):
 			if (counter % 1000) == 0:
 				update_dict('total_docs', counter)
 				write_to_file()
-			if counter == 10:
+			if counter == 100:
 				break
 		elif event == 'start':
 			tag = None
@@ -224,15 +224,16 @@ def read_data(filename):
 			if tag == 'id':
 				idn = elem.text
 				os.system('clear')
-				cp.head("Scanning Document " + str(counter))
+				cp.head("Scanning Document (" + str(idn) + ") - " + str(counter))
 			elif tag == 'abstract':
 				text = elem.text
-				if text is not None:
-					cp.cprint("Original text", type(text), True)
+				if (text is not None) and (text.strip() != ""):
+					cp.cprint("Original text", text, True)
 					text = process_data(idn, text)
 					doc_id_text[idn] = dict({'serial': counter, 'text': text})
 					update_dict('text', idn)
 				else:
+					doc_id_text[idn] = dict({'serial': counter, 'text': ""})
 					update_dict('no-text', idn)
 					cp.cprint("Error", "No text found")
 	update_dict('total_docs', counter)
