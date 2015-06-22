@@ -22,8 +22,8 @@ doc_group = {}
 doc_id_text = {}
 counter = 0
 
-file_doc_group = "doc_group_3"
-file_doc_id_text = "doc_id_text_3"
+file_doc_group = "doc_group"
+file_doc_id_text = "doc_id_text"
 
 # Converts Equation markup to shorthand ($)
 def change_eqn_markup_to_shorthand(s):
