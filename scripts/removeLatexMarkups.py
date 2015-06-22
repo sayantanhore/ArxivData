@@ -199,6 +199,7 @@ def process_data(idn, s):
 	classify_docs(idn, s)
 	s = remove_citations(idn, s)
 	s = change_eqn_markup_to_shorthand(s)
+	s = remove_math_expressions(idn, s)
 	s = remove_begin_end_markups(idn, s)
 	return s
 
