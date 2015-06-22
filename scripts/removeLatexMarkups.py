@@ -183,11 +183,7 @@ def update_dict(key, idn):
 	if key not in doc_group.keys():
 		doc_group[key] = [idn]
 	else:
-		if (key == 'begin-end') or (key == 'math') or (key == 'no-math'):
-			if idn not in doc_group[key]:
-				doc_group[key].append(idn)
-		else:
-			doc_group[key].append(idn)
+		doc_group[key].append(idn)
 
 # Writes data to file
 def write_to_file():
