@@ -214,38 +214,54 @@ def read_data(filename):
 	global counter
 	global doc_group
 	global doc_id_text
-	for event, elem in et.iterparse(DATA_PATH + filename, events = ('start', 'start-ns', 'end-ns')):
+	for event, elem in et.iterparse(DATA_PATH + filename, events = ('start', 'start-ns', 'end-ns', 'end')):
+		print(event)
+		#print(elem)
 		if event == 'start-ns':
+			#os.system('clear')
+			
 			ns_map.append(elem)
 			if len(ns_map) == 2:
 				counter += 1
+				cp.head("Scanning Document (" + str(idn) + ") - " + str(counter))
 		elif event == 'end-ns':
 			ns_map.pop()
+			print(elem)
 			# Write to file
 			if (counter % 1000) == 0:
 				update_dict('total_docs', counter)
 				write_to_file()
-			if counter == 100:
+			if counter == 7:
 				break
 		elif event == 'start':
+			print(elem)
 			tag = None
 			if '' in dict(ns_map).keys():
 				tag = elem.tag.replace('{' + dict(ns_map)[''] + '}', '')
+				print(tag)
 			if tag == 'id':
 				idn = elem.text
-				os.system('clear')
-				cp.head("Scanning Document (" + str(idn) + ") - " + str(counter))
+				print(idn)
+				
 			elif tag == 'abstract':
 				text = elem.text
+				print(text)
 				if (text is not None) and (text.strip() != ""):
-					cp.cprint("Original text", text, True)
-					text = process_data(idn, text)
+					#cp.cprint("Original text", text, True)
+					#text = process_data(idn, text)
 					doc_id_text[idn] = dict({'serial': counter, 'text': text})
 					update_dict('text', idn)
 				else:
-					doc_id_text[idn] = dict({'serial': counter, 'text': ""})
+					
+					doc_id_text[idn] = dict({'serial': counter, 'text': text})
 					update_dict('no-text', idn)
 					cp.cprint("Error", "No text found")
+					#wprint(text)
+		elif event == 'end':
+			print(elem)
+			if tag == 'abstract':
+				print(tag)
+				print(elem.text)
 	update_dict('total_docs', counter)
 	write_to_file()
 if __name__ == '__main__':
