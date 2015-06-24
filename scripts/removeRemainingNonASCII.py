@@ -28,35 +28,36 @@ def generate_XML(eng_docs):
 def remove_keywords(text):
 	#pattern = r'(?<=\()[\w\- ]+(?=\))'
 	#pattern = r'\w+[_\-]\w+|[A-Z]+[_\-]*[A-Z]+'
-	pattern = r'\w+[_\-]\w+|[A-Z]+[_\-]*[A-Z]+'
+	pattern = r'(?:\w+[_\-]+)+\w+|(?:[A-Z]+[_\-]*)+[A-Z]+'
 	#pattern = r'[A-Z]+'
 	
 	#print(text)
 	#print("\n")
 	cp.cprint("Removing Key-Words", "", True)
 	cp.cprint("Patterns present", "", True)
-	while True:
-		res = re.findall(pattern, text)
-		if len(res) == 0:
-			break
-		print(res)
-		print("\n")
-		#text = re.sub(pattern, "", text, count = 0, flags = 0)
-		for matched_str in res:
-			if not ie.is_word(matched_str):
-				pattern = r'[_\-]+'
-				split_ups = re.split(pattern, matched_str)
-				#text = text.replace(matched_str, )
-				suggestion = ""
-				for w in split_ups:
-					if ie.is_word(w):
-						suggestion += w
-						suggestion += " "
-				suggestion = suggestion.strip()
-				text = text.replace(matched_str, suggestion)
-		cp.cprint("After removal", "", True)
-		print(text)
-		print("\n")
+	
+	res = re.findall(pattern, text)
+	
+	print(res)
+	print("\n")
+	#text = re.sub(pattern, "", text, count = 0, flags = 0)
+	for matched_str in res:
+		if not ie.is_word(matched_str):
+			pattern = r'[_\-]+'
+			split_ups = re.split(pattern, matched_str)
+			#text = text.replace(matched_str, )
+			
+			suggestion = ""
+
+			for w in split_ups:
+				if ie.is_word(w):
+					suggestion += w
+					suggestion += " "
+			suggestion = suggestion.strip()
+			text = text.replace(matched_str, suggestion)
+	cp.cprint("After removal", "", True)
+	print(text)
+	print("\n")
 	return text
 
 # Removes math expressions not contained in dollar
