@@ -12,6 +12,8 @@ import cprints as cp
 import isEnglish as ie
 from localsettings import *
 
+
+
 def generate_XML(eng_docs):
 	doc_id_text = json.load(open(DATA_PATH + "doc_id_text_2", "rb"))
 	root = et.Element("articles")
@@ -116,8 +118,8 @@ def remove_non_alpha(text):
 if __name__ == '__main__':
 	os.system('clear')
 	cp.head("Reading data files ...")
-	doc_group = json.load(open(DATA_PATH + "doc_group_2", "rb"))
-	doc_id_text = json.load(open(DATA_PATH + "doc_id_text_2", "rb"))
+	doc_group = json.load(open(DATA_PATH + file_doc_group, "rb"))
+	doc_id_text = json.load(open(DATA_PATH + file_doc_id_text, "rb"))
 	
 	
 	eng_docs = doc_group['eng'][:5]
@@ -126,7 +128,7 @@ if __name__ == '__main__':
 	for index, value in enumerate(eng_docs):
 		os.system('clear')
 		cp.head("Scanning Document (" + str(value) + ") - " + str(index))
-		text = doc_id_text[value]
+		text = doc_id_text[value]['text']
 		cp.cprint("Text", "", True)
 		print(text)
 		text = remove_keywords(text)

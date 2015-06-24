@@ -13,7 +13,13 @@ def correct_spelling(text):
 			cp.cprint("Suggestions", checker.suggest(word))
 def is_word(word):
 	checker = enchant.Dict("en_US")
-	return checker.check(word)
+	if len(word) > 1:
+		return checker.check(word)
+	elif len(word) == 1:
+		if word in ['a', 'A', 'I']:
+			return True
+		else:
+			return False
 	
 def is_english(text, UK = False):
 	if UK:
