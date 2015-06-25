@@ -26,6 +26,21 @@ def generate_XML(eng_docs):
 		abstract.text = doc_id_text[idn]
 		root.append(article)
 	et.ElementTree(root).write("output.xml")
+
+# Removes remaining latex opening constructs
+def remove_latex_start(text):
+	pattern = r'\\\w+\**\s*(?:(?:{[\w*\\/|\-,;:]+}\s*)|(?:\[[\w*\\/|\-,;:]+\]\s*)|(?:\([\w\s,;:]+\)))*'
+	cp.cprint("Removing Remaining Latex openings", "", True)
+	cp.cprint("Patterns present", "", True)
+
+	res = re.findall(pattern, text)
+	print(res)
+	print("\n")
+	text = re.sub(pattern, "", text, count = 0, flags = 0)
+	print(text)
+	print("\n")
+	return text
+
 # Removes braces
 def remove_keywords(text):
 	#pattern = r'(?<=\()[\w\- ]+(?=\))'
@@ -66,7 +81,8 @@ def remove_keywords(text):
 def remove_braces(text):
 	#pattern = r'(?:[]\w^~{}[/\+\*]+)+'
 	#pattern = r'\(?\w*[][{}()^~_\-|/\+\*\d]+\w*\)?'
-	pattern = r'\(+[\w\- ]*\)+'
+	#pattern = r'\(+[\w\s\- ]*\)+'
+	pattern = r'[^\w\s]+'
 	res = re.findall(pattern, text)
 	#print(text)
 	#print("\n")
@@ -74,11 +90,13 @@ def remove_braces(text):
 	cp.cprint("Patterns present", "", True)
 	print(res)
 	print("\n")
-	#text = re.sub(pattern, "", text, count = 0, flags = 0)
+	text = re.sub(pattern, "", text, count = 0, flags = 0)
+	'''
 	for matched_str in res:
 		suggestion = matched_str.replace("(", "").replace(")", "")
 		text = text.replace(matched_str, suggestion)
 	cp.cprint("After removal", "", True)
+	'''
 	print(text)
 	print("\n")
 	return text
@@ -122,7 +140,7 @@ if __name__ == '__main__':
 	doc_id_text = json.load(open(DATA_PATH + file_doc_id_text, "rb"))
 	
 	
-	eng_docs = doc_group['eng'][:5]
+	eng_docs = doc_group['eng'][:50]
 	#generate_XML(eng_docs)
 	#remove_math_expr_without_dollar()
 	for index, value in enumerate(eng_docs):
@@ -131,11 +149,12 @@ if __name__ == '__main__':
 		text = doc_id_text[value]['text']
 		cp.cprint("Text", "", True)
 		print(text)
-		text = remove_keywords(text)
-		text = remove_braces(text)
-		text = remove_math_without_dollar(text)
-		text = remove_non_alpha(text)
-		doc_id_text[value] = text
+		text = remove_latex_start(text)
+		#text = remove_keywords(text)
+		#text = remove_braces(text)
+		#text = remove_math_without_dollar(text)
+		#text = remove_non_alpha(text)
+		doc_id_text[value]['text'] = text
 		
 		if (index % 1000) == 0:
 			with open(DATA_PATH + file_doc_id_text_updated, "wb") as outfile:
