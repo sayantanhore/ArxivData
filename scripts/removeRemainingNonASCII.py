@@ -29,97 +29,20 @@ def generate_XML(eng_docs):
 
 # Removes remaining latex opening constructs
 def remove_latex_start(text):
-	pattern = r'\\\w+\**\s*(?:(?:{[\w*\\/|\-,;:]+}\s*)|(?:\[[\w*\\/|\-,;:]+\]\s*)|(?:\([\w\s,;:]+\)))*'
+	pattern = r'\\\w+\**\s*(?:(?:{[ \w*\\/|\-,;:]+}\s*)|(?:\[[ \w*\\/|\-,;:]+\]\s*)|(?:\([ \w\s,;:]+\)))*'
 	cp.cprint("Removing Remaining Latex openings", "", True)
 	cp.cprint("Patterns present", "", True)
-
 	res = re.findall(pattern, text)
 	print(res)
 	print("\n")
-	text = re.sub(pattern, "", text, count = 0, flags = 0)
-	print(text)
-	print("\n")
-	return text
-
-# Removes braces
-def remove_keywords(text):
-	#pattern = r'(?<=\()[\w\- ]+(?=\))'
-	#pattern = r'\w+[_\-]\w+|[A-Z]+[_\-]*[A-Z]+'
-	pattern = r'(?:\w+[_\-]+)+\w+|(?:[A-Z]+[_\-]*)+[A-Z]+'
-	#pattern = r'[A-Z]+'
-	
-	#print(text)
-	#print("\n")
-	cp.cprint("Removing Key-Words", "", True)
-	cp.cprint("Patterns present", "", True)
-	
-	res = re.findall(pattern, text)
-	
-	print(res)
-	print("\n")
-	#text = re.sub(pattern, "", text, count = 0, flags = 0)
-	for matched_str in res:
-		if not ie.is_word(matched_str):
-			pattern = r'[_\-]+'
-			split_ups = re.split(pattern, matched_str)
-			#text = text.replace(matched_str, )
-			
-			suggestion = ""
-
-			for w in split_ups:
-				if ie.is_word(w):
-					suggestion += w
-					suggestion += " "
-			suggestion = suggestion.strip()
-			text = text.replace(matched_str, suggestion)
-	cp.cprint("After removal", "", True)
-	print(text)
-	print("\n")
-	return text
-
-# Removes math expressions not contained in dollar
-def remove_braces(text):
-	#pattern = r'(?:[]\w^~{}[/\+\*]+)+'
-	#pattern = r'\(?\w*[][{}()^~_\-|/\+\*\d]+\w*\)?'
-	#pattern = r'\(+[\w\s\- ]*\)+'
-	pattern = r'[^\w\s]+'
-	res = re.findall(pattern, text)
-	#print(text)
-	#print("\n")
-	cp.cprint("Removing braces", "", True)
-	cp.cprint("Patterns present", "", True)
-	print(res)
-	print("\n")
-	text = re.sub(pattern, "", text, count = 0, flags = 0)
-	'''
-	for matched_str in res:
-		suggestion = matched_str.replace("(", "").replace(")", "")
-		text = text.replace(matched_str, suggestion)
-	cp.cprint("After removal", "", True)
-	'''
-	print(text)
-	print("\n")
-	return text
-
-# Removes math expressions without dollar
-def remove_math_without_dollar(text):
-	pattern = r'\w*[][{}()^~_\-|/\+\*=\d]+\w*'
-	res = re.findall(pattern, text)
-	#print(text)
-	#print("\n")
-	cp.cprint("Removing Math expressions without dollar", "", True)
-	cp.cprint("Patterns present", "", True)
-	print(res)
-	print("\n")
-	text = re.sub(pattern, "", text, count = 0, flags = 0)
-	cp.cprint("After removal", "", True)
+	text = re.sub(pattern, " ", text, count = 0, flags = 0)
 	print(text)
 	print("\n")
 	return text
 
 # Removes any non-alphabet chatacter left
 def remove_non_alpha(text):
-	pattern = r'[^\w\s.,;]+'
+	pattern = r'[\W\s.,;_-]+'
 	res = re.findall(pattern, text)
 	#print(text)
 	#print("\n")
@@ -127,11 +50,37 @@ def remove_non_alpha(text):
 	cp.cprint("Patterns present", "", True)
 	print(res)
 	print("\n")
-	text = re.sub(pattern, "", text, count = 0, flags = 0)
+	text = re.sub(pattern, " ", text, count = 0, flags = 0)
 	cp.cprint("After removal", "", True)
 	print(text)
 	print("\n")
 	return text
+
+# Removes any non-alphabet chatacter left
+def remove_non_word(text):
+	pattern = r'[\w]+'
+	res = re.findall(pattern, text)
+	#print(text)
+	#print("\n")
+	#print(re.match(pattern, text))
+	cp.cprint("Removing words", "", True)
+	cp.cprint("Patterns present", "", True)
+	print(res)
+	print("\n")
+	text = re.sub(pattern, produce_match_str, text, count = 0, flags = 0)
+	cp.cprint("After removal", "", True)
+	print(text)
+	print("\n")
+	return text
+
+# Produces custom replacement for regex match
+def produce_match_str(matched_word):
+	match = matched_word.group(0)
+	if not ie.is_word(match):
+		return " "
+	else:
+		return match
+
 
 if __name__ == '__main__':
 	os.system('clear')
@@ -140,7 +89,7 @@ if __name__ == '__main__':
 	doc_id_text = json.load(open(DATA_PATH + file_doc_id_text, "rb"))
 	
 	
-	eng_docs = doc_group['eng'][:50]
+	eng_docs = doc_group['eng'][:3]
 	#generate_XML(eng_docs)
 	#remove_math_expr_without_dollar()
 	for index, value in enumerate(eng_docs):
@@ -150,10 +99,8 @@ if __name__ == '__main__':
 		cp.cprint("Text", "", True)
 		print(text)
 		text = remove_latex_start(text)
-		#text = remove_keywords(text)
-		#text = remove_braces(text)
-		#text = remove_math_without_dollar(text)
-		#text = remove_non_alpha(text)
+		text = remove_non_alpha(text)
+		text = remove_non_word(text)
 		doc_id_text[value]['text'] = text
 		
 		if (index % 1000) == 0:

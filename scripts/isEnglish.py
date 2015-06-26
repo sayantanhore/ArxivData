@@ -14,7 +14,10 @@ def correct_spelling(text):
 def is_word(word):
 	checker = enchant.Dict("en_US")
 	if len(word) > 1:
-		return checker.check(word)
+		if word.isdigit():
+			return False
+		else:
+			return checker.check(word)
 	elif len(word) == 1:
 		if word in ['a', 'A', 'I']:
 			return True
