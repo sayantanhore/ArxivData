@@ -89,7 +89,7 @@ if __name__ == '__main__':
 	doc_id_text = json.load(open(DATA_PATH + file_doc_id_text, "rb"))
 	
 	
-	eng_docs = doc_group['eng'][:3]
+	eng_docs = doc_group['eng'][:5]
 	#generate_XML(eng_docs)
 	#remove_math_expr_without_dollar()
 	for index, value in enumerate(eng_docs):
